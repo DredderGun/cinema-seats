@@ -16,7 +16,6 @@ public class TakeSeat extends AbstractRequestHandler<List<Integer>> {
 
     @Override
     protected Answer processImpl(List<Integer> seatIds) throws Exception {
-        Thread.sleep(3000);
         return new Answer(String.valueOf(seatDao.takeSeats(seatIds)));
     }
 
