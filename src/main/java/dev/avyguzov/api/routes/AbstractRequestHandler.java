@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import dev.avyguzov.db.SeatDao;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -12,6 +14,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 
 public abstract class AbstractRequestHandler<V> implements Route {
+    private static final Logger logger = LogManager.getLogger(AbstractRequestHandler.class);
 
     protected static final int HTTP_BAD_REQUEST = 400;
     protected static final int OK = 200;
@@ -33,12 +36,14 @@ public abstract class AbstractRequestHandler<V> implements Route {
             objectMapper.writeValue(sw, data);
             return sw.toString();
         } catch (IOException e){
+            logger.error(e.getStackTrace());
             throw new RuntimeException("IOException from a StringWriter?");
         }
     }
 
     public final Answer process(V value) {
         if (!isValid(value)) {
+            logger.info("Validation was failed for value: {}", value);
             Answer answer = new Answer(HTTP_BAD_REQUEST);
             answer.setPayload("Validation failed!");
             return answer;
@@ -46,6 +51,7 @@ public abstract class AbstractRequestHandler<V> implements Route {
             try {
                 return processImpl(value);
             } catch (Exception ex) {
+                logger.error(ex.getStackTrace());
                 Answer answer = new Answer(HTTP_BAD_REQUEST);
                 answer.setPayload(ex.getMessage());
                 ex.printStackTrace();
@@ -55,9 +61,7 @@ public abstract class AbstractRequestHandler<V> implements Route {
     }
 
     protected abstract Answer processImpl(V value) throws Exception;
-
     protected abstract boolean isValid(V value);
-
 
     @Override
     public Object handle(Request request, Response response) throws Exception {

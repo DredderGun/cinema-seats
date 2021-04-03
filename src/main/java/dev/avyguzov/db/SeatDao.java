@@ -1,6 +1,7 @@
 package dev.avyguzov.db;
 
 import dev.avyguzov.model.Seat;
+import org.apache.logging.log4j.LogManager;
 
 import javax.inject.Inject;
 import java.sql.Connection;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class SeatDao {
+    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(SeatDao.class);
     private final Database database;
 
     @Inject
@@ -25,6 +27,8 @@ public class SeatDao {
         Connection conn = database.getConnection();
         Statement statement = conn.createStatement();
         ResultSet rs = statement.executeQuery(getAllSeatsSql);
+
+        logger.info("Successfully get all seats from DB");
 
         var seats = new ArrayList<Seat>();
 
@@ -48,7 +52,9 @@ public class SeatDao {
      */
     public boolean takeSeats(List<Integer> seatsIds) throws SQLException {
         if (seatsIds.size() == 0) {
-            throw new IllegalArgumentException("Must be specified at least one seat");
+            String errorMessage = "Must be specified at least one seat";
+            logger.error(errorMessage);
+            throw new IllegalArgumentException(errorMessage);
         }
         try (Connection conn = database.getConnection();
              Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -56,13 +62,16 @@ public class SeatDao {
 
             int rowCount = rs.last() ? rs.getRow() : 0;
             if (rowCount != seatsIds.size()) {
+                logger.info("One or more of required seats are taken before try");
                 return false;
             }
             rs.beforeFirst();
             if (takeAllSeatsFromRs(conn, rs)) {
                 conn.commit();
+                logger.info("All seats are occupied successfully");
             } else {
                 conn.rollback();
+                logger.info("Somebody has taken seat while trying to occupy seats");
                 return false;
             }
         }
