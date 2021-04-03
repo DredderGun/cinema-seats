@@ -9,5 +9,5 @@ public class EmptyPayload {
         this.payload = data;
     }
 
-    public String payload = "";
+    private String payload = "";
 }
