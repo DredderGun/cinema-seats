@@ -36,7 +36,7 @@ public abstract class AbstractRequestHandler<V> implements Route {
             objectMapper.writeValue(sw, data);
             return sw.toString();
         } catch (IOException e){
-            logger.error(e.getStackTrace());
+            LogManager.getLogger("errors").error(e.getStackTrace());
             throw new RuntimeException("IOException from a StringWriter?");
         }
     }
@@ -51,7 +51,7 @@ public abstract class AbstractRequestHandler<V> implements Route {
             try {
                 return processImpl(value);
             } catch (Exception ex) {
-                logger.error(ex.getStackTrace());
+                LogManager.getLogger("errors").error(ex.getStackTrace());
                 Answer answer = new Answer(HTTP_BAD_REQUEST);
                 answer.setPayload(ex.getMessage());
                 ex.printStackTrace();

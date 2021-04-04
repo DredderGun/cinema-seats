@@ -1,35 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
     <Properties>
-        <Property name="filename">target/output.log</Property>
-        <Property name="errorFilename">target/error.log</Property>
+        <Property name="filename">output.log</Property>
+        <Property name="errorFilename">error.log</Property>
     </Properties>
 
     <Appenders>
-        <Appender type="Console" name="STDOUT">
-            <Layout type="PatternLayout" pattern="%m MDC%X%n"/>
-        </Appender>
-        <Appender type="File" name="File" fileName="${filename}">
-            <Layout type="PatternLayout">
-                <Pattern>%d %p %C{1.} [%t] %m%n</Pattern>
-            </Layout>
-        </Appender>
-        <Appender type="File" name="errorFile" fileName="${errorFilename}">
-            <Layout type="PatternLayout">
-                <Pattern>%d %p %C{1.} [%t] %m%n</Pattern>
-            </Layout>
-        </Appender>
+        <Console name="STDOUT">
+            <PatternLayout>
+                <pattern>%m MDC%X%n</pattern>
+            </PatternLayout>
+        </Console>
+        <File name="File" fileName="${filename}">
+            <PatternLayout>
+                <pattern>%d %p %C{1.} [%t] %m%n</pattern>
+            </PatternLayout>
+        </File>
+        <File name="ErrorFile" fileName="${errorFilename}">
+            <PatternLayout>
+                <pattern>%d %p %C{1.} [%t] %m%n</pattern>
+            </PatternLayout>
+        </File>
     </Appenders>
 
     <Loggers>
+        <Logger name="dev.avyguzov" level="info" additivity="true">
+            <AppenderRef ref="File"/>
+        </Logger>
+        <Logger name="errors" level="error" additivity="true">
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
         <Root level="info">
             <AppenderRef ref="STDOUT"/>
-            <AppenderRef ref="File"/>
         </Root>
-<!--        <Root level="error">-->
-<!--            <AppenderRef ref="STDOUT"/>-->
-<!--            <AppenderRef ref="errorFile"/>-->
-<!--        </Root>-->
     </Loggers>
 
 </Configuration>

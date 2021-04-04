@@ -53,7 +53,7 @@ public class SeatDao {
     public boolean takeSeats(List<Integer> seatsIds) throws SQLException {
         if (seatsIds.size() == 0) {
             String errorMessage = "Must be specified at least one seat";
-            logger.error(errorMessage);
+            LogManager.getLogger("errors").error(errorMessage);
             throw new IllegalArgumentException(errorMessage);
         }
         try (Connection conn = database.getConnection();
