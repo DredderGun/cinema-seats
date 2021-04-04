@@ -20,6 +20,8 @@ public class TakeSeat extends AbstractRequestHandler<List<Integer>> {
     @Override
     protected Answer processImpl(List<Integer> seatIds) throws Exception {
         logger.info("Request for a seat reservation with ids ={}", seatIds.toString());
+        //1,2
+        //1,2
         return new Answer(String.valueOf(seatDao.takeSeats(seatIds)));
     }
 

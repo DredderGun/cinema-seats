@@ -1,0 +1,19 @@
+1. Add readme file
+    * Что нужно чтобы установить приложения?
+    * Как установить приложение?
+    * Какие ограничения системы? - если будешь использовать память для синхронизации напиши что это не будет работать если запустить N http серверов
+    * Пример - https://github.com/akarasavov/httpMonitor
+
+2. Создать CinemaHttpClient который абстрагирует взаимодействие по сети(не критично)
+3. Создать модель всего кинотеатра(не критично)
+4. Проверить весь naming классов, переменных, методов
+    * Не использовать абстрактные слова
+5. Интеграционные тесты должны запускать баззу и http сервер
+    * Если хочешь запустить базу в тестах можешь использовать - https://www.testcontainers.org/modules/databases/postgres/. Пример использования https://www.testcontainers.org/quickstart/junit_4_quickstart/ для redis
+6. Почитай о SOLID и сделай review своего кода
+   * https://web.archive.org/web/20150202200348/http://www.objectmentor.com/resources/articles/srp.pdf
+   * https://web.archive.org/web/20150905081105/http://www.objectmentor.com/resources/articles/ocp.pdf
+   * https://web.archive.org/web/20150905081111/http://www.objectmentor.com/resources/articles/lsp.pdf
+   * https://web.archive.org/web/20150905081110/http://www.objectmentor.com/resources/articles/isp.pdf
+   * https://web.archive.org/web/20150905081103/http://www.objectmentor.com/resources/articles/dip.pdf
+

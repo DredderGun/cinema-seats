@@ -3,7 +3,7 @@ package dev.avyguzov;
 import com.google.inject.*;
 import dev.avyguzov.api.routes.Routes;
 import dev.avyguzov.db.Database;
-import dev.avyguzov.service.MessageService;
+import dev.avyguzov.service.ConfigReader;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -15,8 +15,8 @@ public class Main extends AbstractModule {
     public static Profile currentProfile;
 
     @Provides
-    static MessageService getMessageService() throws IOException {
-        return new MessageService("./application-" + currentProfile.name().toLowerCase() + ".properties");
+    static ConfigReader getMessageService() throws IOException {
+        return new ConfigReader("./application-" + currentProfile.name().toLowerCase() + ".properties");
     }
 
     public static void main(String[] args) throws SQLException, IOException {

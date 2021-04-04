@@ -59,7 +59,8 @@ public class SeatDao {
         try (Connection conn = database.getConnection();
              Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
              ResultSet rs = getAllAvailableSeatsRs(statement, seatsIds)) {
-
+            //1,2
+            //1,2
             int rowCount = rs.last() ? rs.getRow() : 0;
             if (rowCount != seatsIds.size()) {
                 logger.info("One or more of required seats are taken before try");

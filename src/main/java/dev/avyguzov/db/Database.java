@@ -1,6 +1,6 @@
 package dev.avyguzov.db;
 
-import dev.avyguzov.service.MessageService;
+import dev.avyguzov.service.ConfigReader;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -9,23 +9,23 @@ import java.nio.file.Path;
 import java.sql.*;
 
 import static dev.avyguzov.Main.currentProfile;
-import static dev.avyguzov.service.MessageService.getPathToTheFile;
+import static dev.avyguzov.service.ConfigReader.getPathToTheFile;
 
 public class Database {
-    private final MessageService messageService;
+    private final ConfigReader configReader;
 
     @Inject
-    public Database(MessageService messageService) {
-        this.messageService = messageService;
+    public Database(ConfigReader configReader) {
+        this.configReader = configReader;
     }
 
     public Connection getConnection() throws SQLException {
         Driver driver = new org.postgresql.Driver();
         DriverManager.registerDriver(driver);
 
-        var dbURL = messageService.getProperty("db.url");
-        var userId = messageService.getProperty("db.user");
-        var password = messageService.getProperty("db.password");
+        var dbURL = configReader.getProperty("db.url");
+        var userId = configReader.getProperty("db.user");
+        var password = configReader.getProperty("db.password");
 
         Connection conn = DriverManager.getConnection(dbURL, userId, password);
         conn.setAutoCommit(false);
