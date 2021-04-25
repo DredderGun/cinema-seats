@@ -1,48 +1,57 @@
 package dev.avyguzov.db;
 
-import dev.avyguzov.service.MessageService;
+import dev.avyguzov.ConfigsReader;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.*;
 
 import static dev.avyguzov.Main.currentProfile;
-import static dev.avyguzov.service.MessageService.getPathToTheFile;
+import static dev.avyguzov.ConfigsReader.getPathToTheFile;
 
+@Singleton
 public class Database {
-    private final MessageService messageService;
+    private final ConfigsReader configsReader;
 
     @Inject
-    public Database(MessageService messageService) {
-        this.messageService = messageService;
+    public Database(ConfigsReader configsReader) throws IOException, SQLException {
+        this.configsReader = configsReader;
+        initDb();
     }
 
     public Connection getConnection() throws SQLException {
-        Driver driver = new org.postgresql.Driver();
-        DriverManager.registerDriver(driver);
-
-        var dbURL = messageService.getProperty("db.url");
-        var userId = messageService.getProperty("db.user");
-        var password = messageService.getProperty("db.password");
-
-        Connection conn = DriverManager.getConnection(dbURL, userId, password);
-        conn.setAutoCommit(false);
-
-        return conn;
+        return DriverManager.getConnection(configsReader.getProperty("db.jdbc-url"));
     }
 
-    public static void initDb(Database database) throws SQLException, IOException {
-        var schemaInitSql = Files.readString(Path.of(getPathToTheFile("schema-init-" + currentProfile.name().toLowerCase() + ".sql")));
-        var dataInitSql = Files.readString(Path.of(getPathToTheFile("data-init-" + currentProfile.name().toLowerCase() + ".sql")));
-
-        try (Connection conn = database.getConnection();
+    private void initDb() throws SQLException, IOException {
+        try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
-            stmt.executeUpdate(schemaInitSql);
-            stmt.executeUpdate(dataInitSql);
+
+            if (conn.getMetaData().supportsBatchUpdates()) {
+                stmt.addBatch(getTableInitScript());
+                stmt.addBatch(getInitDataScript());
+                stmt.executeBatch();
+            } else {
+                throw new SQLException("A DB doesn't support BatchUpdates");
+            }
             conn.commit();
         }
     }
 
+    private String getInitDataScript() throws IOException {
+        var scriptFromFile = Files.readString(Path.of(getPathToTheFile("data-init-" + currentProfile.name().toLowerCase() + ".sql")));
+        return scriptFromFile.replace("?", configsReader.getProperty("db.seats-table")).toString();
+    }
+
+    private String getTableInitScript() {
+        return "CREATE TABLE " + configsReader.getProperty("db.seats-table") + " (\n" +
+                "id integer NOT NULL,\n" +
+                "is_occupied boolean,\n" +
+                "version integer,\n" +
+                "CONSTRAINT pk_seats PRIMARY KEY (id)\n" +
+                ")";
+    }
 }

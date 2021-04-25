@@ -1,6 +1,6 @@
-package dev.avyguzov.api.routes;
+package dev.avyguzov.api.handlers.model;
 
-import static dev.avyguzov.api.routes.AbstractRequestHandler.OK;
+import static dev.avyguzov.api.handlers.AbstractRequestHandler.OK;
 
 public class Answer {
     private String payload = "";

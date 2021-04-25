@@ -1,12 +1,15 @@
 package dev.avyguzov;
 
 import com.google.inject.*;
-import dev.avyguzov.api.routes.Routes;
-import dev.avyguzov.db.Database;
-import dev.avyguzov.service.MessageService;
+import com.google.inject.multibindings.Multibinder;
+import dev.avyguzov.api.config.RoutesMapper;
+import dev.avyguzov.api.handlers.GetAllSeats;
+import dev.avyguzov.api.handlers.TakeSeat;
+import spark.Route;
 
 import java.io.IOException;
-import java.sql.SQLException;
+
+import static spark.Spark.init;
 
 public class Main extends AbstractModule {
     public enum Profile {
@@ -15,19 +18,27 @@ public class Main extends AbstractModule {
     public static Profile currentProfile;
 
     @Provides
-    static MessageService getMessageService() throws IOException {
-        return new MessageService("./application-" + currentProfile.name().toLowerCase() + ".properties");
+    static ConfigsReader getConfigsReader() throws IOException {
+        return new ConfigsReader("./application-" + currentProfile.name().toLowerCase() + ".properties");
     }
 
-    public static void main(String[] args) throws SQLException, IOException {
+    public void configure() {
+        Multibinder<Route> routeMultiBinder = Multibinder.newSetBinder(binder(), Route.class);
+        routeMultiBinder.addBinding().to(TakeSeat.class);
+        routeMultiBinder.addBinding().to(GetAllSeats.class);
+
+        // to initialize all routes
+        bind(RoutesMapper.class).asEagerSingleton();
+    }
+
+    public static void main(String[] args) {
         if (args.length == 0) {
             currentProfile = Profile.PROD;
         } else if (args[0].equalsIgnoreCase("test")) {
             currentProfile = Profile.TEST;
         }
 
-        Injector injector = Guice.createInjector(new Main());
-        Routes.establishRoutes(injector);
-        Database.initDb(injector.getInstance(Database.class));
+        init();
+        Guice.createInjector(new Main());
     }
 }

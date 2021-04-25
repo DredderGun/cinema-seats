@@ -1,4 +1,4 @@
-package dev.avyguzov.api.routes;
+package dev.avyguzov.api.handlers.model;
 
 public class EmptyPayload {
     public String getPayload() {

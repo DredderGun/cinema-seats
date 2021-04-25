@@ -1,26 +1,34 @@
 package dev.avyguzov.api;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import dev.avyguzov.ConfigsReader;
+import dev.avyguzov.Main;
+import dev.avyguzov.api.client.CinemaClient;
+import dev.avyguzov.api.client.JavaHttpCinemaClient;
 import dev.avyguzov.model.Seat;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.List;
 
-public class GetAllSeatsIntegrationTest extends ApiAbstractTest {
-    @Test
-    public void getAllSeatsPathGetData() throws InterruptedException, IOException, URISyntaxException {
-        var request = HttpRequest.newBuilder(new URI(serverHost + "/get-all-seats"))
-                .GET()
-                .build();
-        HttpResponse<String> response = request(request);
+public class GetAllSeatsIntegrationTest {
+    private final CinemaClient cinemaClient = new JavaHttpCinemaClient();
+    private final ConfigsReader configsReader = new ConfigsReader("application-test.properties");
+    private final String serverHost = configsReader.getProperty("server.host");
 
-        Assertions.assertEquals(response.statusCode(), 200);
-        Assertions.assertEquals(mapper.readValue(response.body(), new TypeReference<List<Seat>>() {}).size(), 10);
+    public GetAllSeatsIntegrationTest() throws IOException {
+    }
+
+    @BeforeEach
+    public void setUp() {
+        Main.main(new String[] {"test"});
+    }
+
+    @Test
+    public void getAllSeatsPathGetData() throws Exception {
+        List<Seat> seats = cinemaClient.getAllSeats(serverHost + "/get-all-seats");
+
+        Assertions.assertEquals(seats.size(), 10);
     }
 }

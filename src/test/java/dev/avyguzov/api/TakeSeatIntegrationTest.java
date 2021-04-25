@@ -1,56 +1,59 @@
 package dev.avyguzov.api;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import dev.avyguzov.ConfigsReader;
+import dev.avyguzov.Main;
+import dev.avyguzov.api.client.CinemaClient;
+import dev.avyguzov.api.client.JavaHttpCinemaClient;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpRequest;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.*;
 
-public class TakeSeatIntegrationTest extends ApiAbstractTest {
+public class TakeSeatIntegrationTest {
+    private final ConfigsReader configsReader = new ConfigsReader("application-test.properties");
+    private final String serverHost = configsReader.getProperty("server.host");
+    private final CinemaClient cinemaClient = new JavaHttpCinemaClient();
 
-    @Test
-    public void successfullyTakeAllSpecifiedSeats() throws URISyntaxException, IOException, InterruptedException {
-        var jsonPayload = "[2, 3, 4]";
-        var request = HttpRequest.newBuilder(new URI(serverHost + "/take-seats"))
-                .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
-                .build();
+    public TakeSeatIntegrationTest() throws IOException {
+    }
 
-        var resp = request(request);
-        Assertions.assertEquals(resp.statusCode(), 200);
-        Assertions.assertTrue(mapper.readValue(resp.body(), new TypeReference<Boolean>() {}));
+    @BeforeAll
+    public static void setUp() {
+        Main.main(new String[] {"test"});
     }
 
     @Test
-    public void dontAllowTakeAlreadyOccupiedSeats() throws URISyntaxException, InterruptedException {
-        var jsonPayload = "[3]";
-        var request = HttpRequest.newBuilder(new URI(serverHost + "/take-seats"))
-                .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
-                .build();
+    public void dontAllowTakeAlreadyOccupiedSeats() throws InterruptedException, ExecutionException {
+        final var parallelRequestsCount = 1000;
+        final List<Callable<Boolean>> requests = new ArrayList<>();
+        final var executorService = Executors.newCachedThreadPool();
 
-        var secondJsonPayload = "[3, 10, 5]";
-        var secondRequest = HttpRequest.newBuilder(new URI(serverHost + "/take-seats"))
-                .POST(HttpRequest.BodyPublishers.ofString(secondJsonPayload))
-                .build();
+        final var random = new Random();
+        var crossSeat = 3;
+        for (int i = 0; i < parallelRequestsCount; i++) {
+            Callable<Boolean> callable = () -> cinemaClient.takeSeats(
+                    serverHost + "/take-seats",
+                    Arrays.asList(crossSeat, random.nextInt(9) + 1));
 
-        ConcurrentLinkedDeque<Boolean> deque = new ConcurrentLinkedDeque<>();
+            requests.add(callable);
+        }
 
-        asyncRequest(request).thenApply(answer -> {
-            deque.add(Boolean.valueOf(answer.body()));
-            return answer;
-        });
-        asyncRequest(secondRequest).thenApply(answer -> {
-            deque.add(Boolean.valueOf(answer.body()));
-            return answer;
-        });
+        var results = executorService.invokeAll(requests);
+        Assertions.assertEquals(parallelRequestsCount, results.stream().filter(Future::isDone).count());
 
-        // todo how to check async answer from server correctly??
-        Thread.sleep(1000);
-        Assertions.assertEquals(deque.stream().filter((el) -> el.equals(true)).count(), 1);
-        Assertions.assertEquals(deque.stream().filter((el) -> el.equals(false)).count(), 1);
+        var successRequestsCount = 0;
+        for (Future<Boolean> currResult : results) {
+            if (currResult.get()) {
+                successRequestsCount++;
+            }
+        }
+        Assertions.assertEquals(1, successRequestsCount);
     }
 
 }

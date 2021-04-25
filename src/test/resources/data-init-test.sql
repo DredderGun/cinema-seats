@@ -1,2 +1,2 @@
 INSERT INTO ? (id, is_occupied, version) VALUES (1, false, 1), (2, false, 1), (3, false, 1), (4, false, 1), (5, false, 1),
-        (6, false, 1), (7, false, 1), (8, false, 1), (9, false, 1), (10, false, 1)
+                                                (6, false, 1), (7, false, 1), (8, false, 1), (9, false, 1), (10, false, 1)

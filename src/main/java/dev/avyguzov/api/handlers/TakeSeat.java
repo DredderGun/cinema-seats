@@ -1,7 +1,9 @@
-package dev.avyguzov.api.routes;
+package dev.avyguzov.api.handlers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.avyguzov.api.config.HandlerPath;
+import dev.avyguzov.api.handlers.model.Answer;
 import dev.avyguzov.db.SeatDao;
 
 import javax.inject.Inject;
@@ -9,6 +11,7 @@ import java.util.List;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
+@HandlerPath(method = "POST", value = "/take-seats")
 public class TakeSeat extends AbstractRequestHandler<List<Integer>> {
     private static final Logger logger = LogManager.getLogger(TakeSeat.class);
 

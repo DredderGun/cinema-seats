@@ -1,8 +1,9 @@
-package dev.avyguzov.api.routes;
+package dev.avyguzov.api.handlers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import dev.avyguzov.api.handlers.model.Answer;
 import dev.avyguzov.db.SeatDao;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,8 +17,8 @@ import java.io.StringWriter;
 public abstract class AbstractRequestHandler<V> implements Route {
     private static final Logger logger = LogManager.getLogger(AbstractRequestHandler.class);
 
-    protected static final int HTTP_BAD_REQUEST = 400;
-    protected static final int OK = 200;
+    public static final int HTTP_BAD_REQUEST = 400;
+    public static final int OK = 200;
 
     protected final TypeReference<V> typeReference;
     protected final SeatDao seatDao;
