@@ -4,12 +4,13 @@ import dev.avyguzov.ConfigsReader;
 import dev.avyguzov.Main;
 import dev.avyguzov.api.client.CinemaClient;
 import dev.avyguzov.api.client.JavaHttpCinemaClient;
+import dev.avyguzov.db.DatabaseDdlOperations;
 import dev.avyguzov.model.Seat;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.sql.SQLException;
 import java.util.List;
 
 public class GetAllSeatsIntegrationTest {
@@ -17,7 +18,7 @@ public class GetAllSeatsIntegrationTest {
     private final ConfigsReader configsReader = new ConfigsReader("application-test.properties");
     private final String serverHost = configsReader.getProperty("server.host");
 
-    public GetAllSeatsIntegrationTest() throws IOException {
+    public GetAllSeatsIntegrationTest() throws IOException, URISyntaxException {
     }
 
     @BeforeEach
@@ -27,8 +28,17 @@ public class GetAllSeatsIntegrationTest {
 
     @Test
     public void getAllSeatsPathGetData() throws Exception {
+        System.out.println("Start - getAllSeatsPathGetData");
         List<Seat> seats = cinemaClient.getAllSeats(serverHost + "/get-all-seats");
 
         Assertions.assertEquals(seats.size(), 10);
+    }
+
+    @AfterEach
+    public void tearDown() throws SQLException {
+        if (Main.globalInjector != null) {
+            DatabaseDdlOperations db = Main.globalInjector.getInstance(DatabaseDdlOperations.class);
+            db.clearDb();
+        }
     }
 }

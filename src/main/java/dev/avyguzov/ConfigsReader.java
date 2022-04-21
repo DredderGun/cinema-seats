@@ -1,31 +1,24 @@
 package dev.avyguzov;
 
-import dev.avyguzov.db.Database;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URL;
+import java.io.InputStream;
 import java.util.Optional;
 import java.util.Properties;
 
 public class ConfigsReader {
+    private static final Logger logger = LogManager.getLogger(ConfigsReader.class);
     public final Properties properties = new Properties();
 
     public ConfigsReader(String resourceName) throws IOException {
-        String pathToProps = getPathToTheFile(resourceName);
+        logger.info("Searching for config file: " + resourceName);
 
-        try (final FileInputStream fis = new FileInputStream(pathToProps)) {
-            properties.load(fis);
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    public static String getPathToTheFile(String fileName) throws FileNotFoundException {
-        return Optional.ofNullable(Database.class.getClassLoader().getResource(fileName))
-                .map(URL::getPath)
+        InputStream si = Optional.ofNullable(ConfigsReader.class.getClassLoader().getResourceAsStream(resourceName))
                 .orElseThrow(FileNotFoundException::new);
+        properties.load(si);
     }
 
     public String getProperty(String propKey) {

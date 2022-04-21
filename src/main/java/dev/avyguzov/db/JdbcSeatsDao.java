@@ -5,29 +5,29 @@ import dev.avyguzov.ConfigsReader;
 import org.apache.logging.log4j.LogManager;
 
 import javax.inject.Inject;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/*
+ * All manipulations with cinema seats.
+ */
 public class JdbcSeatsDao implements SeatDao {
     private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(JdbcSeatsDao.class);
-    private final Database database;
+    private final DatabaseDdlOperations DatabaseDdlOperations;
     private final ConfigsReader configsReader;
 
     @Inject
-    public JdbcSeatsDao(Database database, ConfigsReader configsReader) {
-        this.database = database;
+    public JdbcSeatsDao(DatabaseDdlOperations DatabaseDdlOperations, ConfigsReader configsReader) {
+        this.DatabaseDdlOperations = DatabaseDdlOperations;
         this.configsReader = configsReader;
     }
 
     public List<Seat> getAllSeats() throws SQLException {
         String getAllSeatsSql = "SELECT * FROM " + configsReader.getProperty("db.seats-table");
 
-        Connection conn = database.getConnection();
+        Connection conn = DriverManager.getConnection(configsReader.getProperty("db.jdbc-url"));
         Statement statement = conn.createStatement();
         ResultSet rs = statement.executeQuery(getAllSeatsSql);
 
@@ -58,7 +58,7 @@ public class JdbcSeatsDao implements SeatDao {
             LogManager.getLogger("errors").error(errorMessage);
             throw new IllegalArgumentException(errorMessage);
         }
-        try (Connection conn = database.getConnection();
+        try (Connection conn = DriverManager.getConnection(configsReader.getProperty("db.jdbc-url"));
              Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
              ResultSet rs = getAllAvailableSeatsRs(statement, seatsIds)) {
 

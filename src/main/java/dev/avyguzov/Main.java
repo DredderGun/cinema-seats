@@ -16,12 +16,14 @@ public class Main extends AbstractModule {
         TEST, PROD
     }
     public static Profile currentProfile;
+    public static Injector globalInjector;
 
     @Provides
     static ConfigsReader getConfigsReader() throws IOException {
-        return new ConfigsReader("./application-" + currentProfile.name().toLowerCase() + ".properties");
+        return new ConfigsReader("application-" + currentProfile.name().toLowerCase() + ".properties");
     }
 
+    @Override
     public void configure() {
         Multibinder<Route> routeMultiBinder = Multibinder.newSetBinder(binder(), Route.class);
         routeMultiBinder.addBinding().to(TakeSeat.class);
@@ -33,12 +35,14 @@ public class Main extends AbstractModule {
 
     public static void main(String[] args) {
         if (args.length == 0) {
+            System.out.println("Prod profile is enabled");
             currentProfile = Profile.PROD;
         } else if (args[0].equalsIgnoreCase("test")) {
+            System.out.println("Test profile is enabled");
             currentProfile = Profile.TEST;
         }
 
         init();
-        Guice.createInjector(new Main());
+        globalInjector = Guice.createInjector(new Main());
     }
 }
